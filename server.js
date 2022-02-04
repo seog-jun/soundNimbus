@@ -22,17 +22,17 @@ app.get("/about", (req, res) => {
   res.send("hello about");
 });
 
-app.get("/lyrics", (req, res) => {
-  musicData
-    .getAlbums()
-    .then((data) => {
-      res.json(data); // =res.send(data);
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(404).send("ERROR!");
-    });
-});
+// app.get("/lyrics", (req, res) => {
+//   musicData
+//     .getAlbums()
+//     .then((data) => {
+//       res.json(data); // =res.send(data);
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//       res.status(404).send("ERROR!");
+//     });
+// });
 
 app.get("/lyrics/:id", (req, res) => {
   musicData
@@ -48,8 +48,18 @@ app.get("/lyrics/:id", (req, res) => {
     });
 });
 
-app.get("/music", (req, res) => {
-  res.send("hello music");
+app.get("/info/:id", (req, res) => {
+  musicData
+    .getAlbums()
+    .then((data) => {
+      //   res.send(req.params.id]); // res.params.id is coming from end point that I write after /lyrics/123
+      // resolved promise Data[id from request params].field
+      res.send(data[req.params.id - 1]);
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(404).send("ERROR!");
+    });
 });
 
 app.use((req, res) => {
