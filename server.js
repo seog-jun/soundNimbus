@@ -8,7 +8,13 @@ const onHTTPStart = () => {
 };
 
 app.use(express.static("public"));
+
 app.get("/", (req, res) => {
+  res.redirect("/home");
+});
+
+app.get("/home", (req, res) => {
+  //   res.send("hello home");
   res.sendFile(path.join(__dirname, "/views/index.html"));
 });
 
