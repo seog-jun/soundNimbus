@@ -3,7 +3,9 @@
     {{#each data}}
       <div class="col-sm-6">
         <div class="card">
-          <img class="card-img-top" src={{imagePath}} />
+          <a href="/songs/{{albumID}}">
+            <img class="card-img-top" src={{imagePath}} />
+          </a>
           <div class="card-body">
             <h5 class="card-title">{{title}}</h5>
             <h6 class="card-title">{{artist}}</h6>
@@ -11,8 +13,11 @@
             {{#if musicPath}}
               <a href={{musicPath}} class="btn btn-primary">Play</a>
             {{/if}}
-            <a href="/lyrics/{{id}}" class="btn btn-success">Lyrics</a>
-            <a href="/info/{{id}}" class="btn btn-dark">More Info</a>
+            {{#if lyrics}}
+              <a href="/lyrics/{{albumID}}" class="btn btn-success">Lyrics</a>
+            {{/if}}
+            <a href="/songs/{{albumID}}" class="btn btn-primary">Songs</a>
+            <a href="/delete/{{albumID}}" class="btn btn-danger">Delete</a>
           </div>
         </div>
       </div>
@@ -28,3 +33,19 @@
 
   </div>
 </div>
+
+{{!-- {{#each data}}
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">{{title}}</h5>
+      <h6 class="card-title">{{artist}}</h6>
+      <p class="card-text">{{year}}</p>
+      {{#if lyrics}}
+        <p class="card-text">{{lyrics}}</p>
+      {{/if}}
+      {{#if musicPath}}
+        <a href={{musicPath}} class="btn btn-primary">Play</a>
+      {{/if}}
+    </div>
+  </div>
+{{/each}} --}}

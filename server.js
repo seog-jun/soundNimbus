@@ -90,11 +90,11 @@ app.get("/lyrics/:id", (req, res) => {
 
 app.get("/info/:id", (req, res) => {
   musicData
-    .getAlbums()
+    .getAlbumById(req.params.id)
     .then((data) => {
       //   res.send(req.params.id]); // res.params.id is coming from end point that I write after /lyrics/123
       // resolved promise Data[id from request params].field
-      res.send(data[req.params.id - 1]);
+      res.json(data);
     })
     .catch((error) => {
       console.log(error);
@@ -102,12 +102,23 @@ app.get("/info/:id", (req, res) => {
     });
 });
 
-app.get("/albums", (req, res) => {
-  // res.sendFile(path.join(__dirname, "/views/albums.html"));
+app.get("/albums/new", (req, res) => {
   res.render("albums", {
     data: null,
     layout: "main",
   });
+});
+
+app.get("/delete/:id", (req, res) => {
+  musicData
+    .deleteAlbum(req.params.id)
+    .then(() => {
+      res.redirect("/home");
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(505).send("ERROR!");
+    });
 });
 
 app.post("/albums/new", upload.single("photo"), (req, res) => {
@@ -137,7 +148,7 @@ app.post("/albums/new", upload.single("photo"), (req, res) => {
 
     musicData
       .addAlbum(req.body)
-      .then((data) => {
+      .then(() => {
         res.redirect("/home");
       })
       .catch((error) => {
@@ -147,6 +158,75 @@ app.post("/albums/new", upload.single("photo"), (req, res) => {
     //res.send(JSON.stringify(req.body));
     // req.body.featureImage = uploaded.url;
   });
+});
+
+app.get("/songs/new", (req, res) => {
+  musicData.getAlbums().then((data) => {
+    res.render("songs", {
+      data: data,
+      layout: "main",
+    });
+  });
+});
+app.post("/songs/new", upload.single("song"), (req, res) => {
+  let streamUpload = (req) => {
+    return new Promise((resolve, reject) => {
+      let stream = cloudinary.uploader.upload_stream(
+        { resource_type: "raw" },
+        (error, result) => {
+          if (result) {
+            resolve(result);
+          } else {
+            reject(error);
+          }
+        }
+      );
+
+      streamifier.createReadStream(req.file.buffer).pipe(stream);
+    });
+  };
+
+  async function upload(req) {
+    let result = await streamUpload(req);
+    console.log(result);
+    return result;
+  }
+
+  upload(req).then((uploaded) => {
+    req.body.musicPath = uploaded.url;
+    console.log(req.body);
+
+    musicData
+      .addSong(req.body)
+      .then(() => {
+        res.redirect("/home");
+      })
+      .catch((error) => {
+        res.status(500).send(error);
+      });
+  });
+});
+
+app.get("/songs/:id", (req, res) => {
+  musicData.getSongsByAlbumID(req.params.id).then((data) => {
+    res.render("albumSongs", {
+      data: data,
+      layout: "main",
+    });
+  });
+});
+
+app.get("/songs/delete/:id", (req, res) => {
+  musicData
+    .deleteSong(req.params.id)
+    .then(() => {
+      res.redirect("/home");
+      // res.redirect(`/songs/${data.albumID}`);
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(505).send("ERROR!");
+    });
 });
 
 app.use((req, res) => {
