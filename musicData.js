@@ -192,6 +192,7 @@ module.exports.deleteSong = function (songID) {
     })
       .then((data) => {
         console.log("SONG DELETED");
+        console.log(data);
         resolve();
       })
       .catch((error) => {
