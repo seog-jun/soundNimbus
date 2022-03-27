@@ -15,7 +15,7 @@ var sequelize = new Sequelize(
     dialectOptions: {
       ssl: { rejectUnauthorized: false },
     },
-    query: { raw: true },
+    query: { raw: true }, // it will return json for handlbars
   }
 );
 
@@ -87,8 +87,6 @@ module.exports.getSongsByAlbumID = function (albumID) {
             songs[i].albumImagePath = album.imagePath;
             songs[i].albumYear = album.year;
             songs[i].albumArtist = album.artist;
-            console.log(album);
-            console.log(songs);
           }
           console.log("SONGS DATA with album:");
           console.log(songs);
