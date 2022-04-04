@@ -6,6 +6,7 @@ env.config(); // which indicates root directory (.env)
 
 const path = require("path");
 const musicData = require("./musicData.js");
+const userData = require("./userData");
 
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
@@ -29,7 +30,7 @@ const onHTTPStart = () => {
 app.use(express.static("public"));
 
 // for form data without file
-// app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 
 // multer middleware
 const upload = multer();
@@ -235,6 +236,24 @@ app.get("/login", (req, res) => {
   });
 });
 
+app.get("/register", (req, res) => {
+  res.render("register", {
+    layout: "main",
+  });
+});
+
+app.post("/register", (req, res) => {
+  // some mongoose CREATE function that takes in req.body and creates a new user document
+  userData
+    .registerUser(req.body)
+    .then((data) => {
+      res.redirect("/login");
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+});
+
 app.use((req, res) => {
   res.status(404).send("PAGE NOT FOUND!!");
 });
@@ -242,9 +261,10 @@ app.use((req, res) => {
 //app.listen(8080, onHTTPStart);
 musicData
   .initialize()
+  .then(userData.initialize)
   .then(() => {
     app.listen(HTTP_PORT, onHTTPStart);
   })
-  .catch((msg) => {
-    console.log(msg);
+  .catch((error) => {
+    console.log(error);
   });
