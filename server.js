@@ -11,6 +11,7 @@ const userData = require("./userData");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
+const clientSessions = require("client-sessions");
 
 const exphbs = require("express-handlebars");
 const { Z_STREAM_END } = require("zlib");
@@ -32,6 +33,22 @@ app.use(express.static("public"));
 // for form data without file
 app.use(express.urlencoded({ extended: true }));
 
+app.use(
+  clientSessions({
+    cookieName: "session",
+    secret: "soundNimbus9001April162022TopSecretPassword",
+    duration: 2 * 60 * 1000, // 2minutes
+    activeDuration: 1000 * 60, //
+  })
+);
+
+function ensureLogin(req, res, next) {
+  if (!req.session.user) {
+    res.redirect("/login");
+  } else {
+    next();
+  }
+}
 // multer middleware
 const upload = multer();
 
@@ -110,7 +127,7 @@ app.get("/albums/new", (req, res) => {
   });
 });
 
-app.get("/delete/:id", (req, res) => {
+app.get("/albums/delete/:id", ensureLogin, (req, res) => {
   musicData
     .deleteAlbum(req.params.id)
     .then(() => {
@@ -235,7 +252,27 @@ app.get("/login", (req, res) => {
     layout: "main",
   });
 });
+app.post("/login", (req, res) => {
+  req.body.userAgent = req.get("User-Agent");
+  // some mongoose CREATE function that takes in req.body and creates a new user document
+  userData
+    .verifyLogin(req.body)
+    .then((mongoData) => {
+      req.session.user = {
+        username: mongoData.username,
+        email: mongoData.email,
+        loginHistory: mongoData.loginHistory,
+      };
 
+      console.log("userData:" + mongoData);
+      console.log(req.session);
+      res.redirect("/home");
+    })
+    .catch((error) => {
+      res.redirect("/login");
+      console.log(error);
+    });
+});
 app.get("/register", (req, res) => {
   res.render("register", {
     layout: "main",
@@ -246,11 +283,18 @@ app.post("/register", (req, res) => {
   // some mongoose CREATE function that takes in req.body and creates a new user document
   userData
     .registerUser(req.body)
-    .then((data) => {
-      res.redirect("/login");
+    .then(() => {
+      res.render("register", {
+        layout: "main",
+        successMessage: "USER CREATED",
+      });
     })
     .catch((error) => {
       console.log(error);
+      res.render("register", {
+        layout: "main",
+        errorMessage: error,
+      });
     });
 });
 
