@@ -39,10 +39,8 @@ var Song = sequelize.define("Song", {
   },
   title: Sequelize.STRING,
   musicPath: Sequelize.STRING,
-  lyrics: Sequelize.STRING,
+  lyrics: Sequelize.TEXT,
 });
-
-// Album.hasMany(Song, { foreignKey: "albumID" });
 
 // post belongs to category
 Song.belongsTo(Album, { foreignKey: "albumID" });
@@ -74,7 +72,6 @@ module.exports.getSongsByAlbumID = function (albumID) {
       where: {
         albumID: albumID,
       },
-      // include: [{ model: Album }],
     })
       .then((songs) => {
         Album.findOne({
@@ -105,19 +102,6 @@ module.exports.addAlbum = function (album) {
     Album.create(album)
       .then(() => {
         console.log("ALBUM CREATED");
-        // Song.create({
-        //   title: "Paranoid",
-        //   musicPath: "/music/paranoid_kanye.mp3",
-        //   lyrics: "Why are you so paranoid ",
-        //   albumID: album.albumID,
-        // })
-        //   .then(() => {
-        //     console.log("SONG CREATED");
-        //   })
-        //   .catch((error) => {
-        //     console.log("SONG ERROR:");
-        //     console.log(error);
-        //   });
         resolve();
       })
       .catch((error) => {
@@ -132,19 +116,6 @@ module.exports.addSong = function (song) {
     Song.create(song)
       .then(() => {
         console.log("SONG CREATED");
-        // Song.create({
-        //   title: "Paranoid",
-        //   musicPath: "/music/paranoid_kanye.mp3",
-        //   lyrics: "Why are you so paranoid ",
-        //   albumID: album.albumID,
-        // })
-        //   .then(() => {
-        //     console.log("SONG CREATED");
-        //   })
-        //   .catch((error) => {
-        //     console.log("SONG ERROR:");
-        //     console.log(error);
-        //   });
         resolve();
       })
       .catch((error) => {
@@ -161,19 +132,6 @@ module.exports.deleteAlbum = function (albumID) {
     })
       .then(() => {
         console.log("ALBUM DELETED");
-        // Song.create({
-        //   title: "Paranoid",
-        //   musicPath: "/music/paranoid_kanye.mp3",
-        //   lyrics: "Why are you so paranoid ",
-        //   albumID: album.albumID,
-        // })
-        //   .then(() => {
-        //     console.log("SONG CREATED");
-        //   })
-        //   .catch((error) => {
-        //     console.log("SONG ERROR:");
-        //     console.log(error);
-        //   });
         resolve();
       })
       .catch((error) => {

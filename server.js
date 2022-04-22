@@ -37,10 +37,15 @@ app.use(
   clientSessions({
     cookieName: "session",
     secret: "soundNimbus9001April162022TopSecretPassword",
-    duration: 2 * 60 * 1000, // 2minutes
+    duration: 10 * 60 * 1000, // 2minutes
     activeDuration: 1000 * 60, //
   })
 );
+
+app.use(function (req, res, next) {
+  res.locals.session = req.session;
+  next();
+});
 
 function ensureLogin(req, res, next) {
   if (!req.session.user) {
@@ -49,6 +54,7 @@ function ensureLogin(req, res, next) {
     next();
   }
 }
+
 // multer middleware
 const upload = multer();
 
@@ -61,8 +67,6 @@ app.get("/", (req, res) => {
 });
 
 app.get("/home", (req, res) => {
-  // res.sendFile(path.join(__dirname, "/views/index.html"));
-
   musicData.getAlbums().then((data) => {
     res.render("index", {
       data: data,
@@ -76,51 +80,14 @@ app.get("/music", (req, res) => {
     res.json(data);
   });
 });
-app.get("/about", (req, res) => {
-  res.send("hello about");
+app.get("/about", function (req, res) {
+  res.render("about", {
+    data: null,
+    layout: "main",
+  });
 });
 
-// app.get("/lyrics", (req, res) => {
-//   musicData
-//     .getAlbums()
-//     .then((data) => {
-//       res.json(data); // =res.send(data);
-//     })
-//     .catch((error) => {
-//       console.log(error);
-//       res.status(404).send("ERROR!");
-//     });
-// });
-
-app.get("/lyrics/:id", (req, res) => {
-  musicData
-    .getAlbums()
-    .then((data) => {
-      //   res.send(req.params.id]); // res.params.id is coming from end point that I write after /lyrics/123
-      // resolved promise Data[id from request params].field
-      res.send(data[req.params.id - 1].lyrics);
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(404).send("ERROR!");
-    });
-});
-
-app.get("/info/:id", (req, res) => {
-  musicData
-    .getAlbumById(req.params.id)
-    .then((data) => {
-      //   res.send(req.params.id]); // res.params.id is coming from end point that I write after /lyrics/123
-      // resolved promise Data[id from request params].field
-      res.json(data);
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(404).send("ERROR!");
-    });
-});
-
-app.get("/albums/new", (req, res) => {
+app.get("/albums/new", ensureLogin, (req, res) => {
   res.render("albums", {
     data: null,
     layout: "main",
@@ -139,7 +106,7 @@ app.get("/albums/delete/:id", ensureLogin, (req, res) => {
     });
 });
 
-app.post("/albums/new", upload.single("photo"), (req, res) => {
+app.post("/albums/new", ensureLogin, upload.single("photo"), (req, res) => {
   let streamUpload = (req) => {
     return new Promise((resolve, reject) => {
       let stream = cloudinary.uploader.upload_stream((error, result) => {
@@ -172,13 +139,10 @@ app.post("/albums/new", upload.single("photo"), (req, res) => {
       .catch((error) => {
         res.status(500).send(error);
       });
-
-    //res.send(JSON.stringify(req.body));
-    // req.body.featureImage = uploaded.url;
   });
 });
 
-app.get("/songs/new", (req, res) => {
+app.get("/songs/new", ensureLogin, (req, res) => {
   musicData.getAlbums().then((data) => {
     res.render("songs", {
       data: data,
@@ -186,7 +150,8 @@ app.get("/songs/new", (req, res) => {
     });
   });
 });
-app.post("/songs/new", upload.single("song"), (req, res) => {
+
+app.post("/songs/new", ensureLogin, upload.single("song"), (req, res) => {
   let streamUpload = (req) => {
     return new Promise((resolve, reject) => {
       let stream = cloudinary.uploader.upload_stream(
@@ -225,7 +190,7 @@ app.post("/songs/new", upload.single("song"), (req, res) => {
   });
 });
 
-app.get("/songs/:id", (req, res) => {
+app.get("/songs/:id", ensureLogin, (req, res) => {
   musicData.getSongsByAlbumID(req.params.id).then((data) => {
     res.render("albumSongs", {
       data: data,
@@ -234,7 +199,7 @@ app.get("/songs/:id", (req, res) => {
   });
 });
 
-app.get("/songs/delete/:id", (req, res) => {
+app.get("/songs/delete/:id", ensureLogin, (req, res) => {
   musicData
     .deleteSong(req.params.id)
     .then(() => {
@@ -254,12 +219,11 @@ app.get("/login", (req, res) => {
 });
 app.post("/login", (req, res) => {
   req.body.userAgent = req.get("User-Agent");
-  // some mongoose CREATE function that takes in req.body and creates a new user document
   userData
-    .verifyLogin(req.body)
+    .checkUser(req.body)
     .then((mongoData) => {
       req.session.user = {
-        username: mongoData.username,
+        userName: mongoData.userName,
         email: mongoData.email,
         loginHistory: mongoData.loginHistory,
       };
@@ -269,10 +233,18 @@ app.post("/login", (req, res) => {
       res.redirect("/home");
     })
     .catch((error) => {
-      res.redirect("/login");
-      console.log(error);
+      res.render("login", {
+        errorMessage: error,
+        userName: req.body.userName,
+      });
     });
 });
+
+app.get("/logout", function (req, res) {
+  req.session.reset();
+  res.redirect("/");
+});
+
 app.get("/register", (req, res) => {
   res.render("register", {
     layout: "main",
@@ -280,29 +252,25 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  // some mongoose CREATE function that takes in req.body and creates a new user document
   userData
     .registerUser(req.body)
     .then(() => {
       res.render("register", {
-        layout: "main",
         successMessage: "USER CREATED",
       });
     })
     .catch((error) => {
-      console.log(error);
       res.render("register", {
-        layout: "main",
+        userName: req.body.userName,
         errorMessage: error,
       });
     });
 });
 
 app.use((req, res) => {
-  res.status(404).send("PAGE NOT FOUND!!");
+  res.render("404.hbs", { data: null, layout: null });
 });
 
-//app.listen(8080, onHTTPStart);
 musicData
   .initialize()
   .then(userData.initialize)

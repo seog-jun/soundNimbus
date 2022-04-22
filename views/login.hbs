@@ -1,31 +1,46 @@
-<div class="container" style="padding-top:60px">
-  <form action="/login/" method="POST">
-          <fieldset>
-      <legend>Login</legend>
-    <div class="form-group">
-      <label for="username">Username</label>
-      <input
-        type="text"
-        class="form-control"
-        name="username"
-        id="username"
-        placeholder="Enter username"
-      />
-    </div> 
- </br>
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input
-        type="password"
-        class="form-control"
-        name ="password"
-        id="password"
-        placeholder="Password"
-      />
-    </div>
-    </br>
-    <input type="submit" class="btn btn-primary pull-right" value="Login" />
-     <a href="/register" class="btn btn-danger">Register</a>
-    </fieldset>
-  </form>
+<div class="row">
+  <div class="col-md-12">
+    <h2>Log In</h2>
+    <hr />
+    {{#if errorMessage}}
+      <div class="alert alert-danger">
+        <strong>Error:</strong>
+        {{errorMessage}}
+      </div>
+    {{/if}}
+    <form method="post" action="/login">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="form-group">
+            <input
+              class="form-control"
+              id="userName"
+              name="userName"
+              type="text"
+              placeholder="User Name"
+              required=""
+             {{#if errorMessage}}
+                value="{{userName}}"
+            {{/if}}
+            />
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="form-group">
+            <input
+              class="form-control"
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Password"
+              required=""
+            />
+          </div>
+        </div>
+      </div>
+      <input type="submit" class="btn btn-success pull-right" value="Login" />
+    </form>
+  </div>
 </div>
