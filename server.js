@@ -1,3 +1,12 @@
+/*********************************************************************************
+ *  Name: Seog-Jun Hong   Date: April 24, 2022
+ *
+ *  Heroku App URL:
+ *
+ *  GitHub Repository URL: https://github.com/seog-jun/soundNimbus
+ *
+ ********************************************************************************/
+
 const express = require("express");
 const app = express();
 
