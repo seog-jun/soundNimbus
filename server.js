@@ -1,7 +1,7 @@
 /*********************************************************************************
  *  Name: Seog-Jun Hong   Date: April 24, 2022
  *
- *  Heroku App URL:
+ *  Heroku App URL: https://cryptic-dusk-62599.herokuapp.com/
  *
  *  GitHub Repository URL: https://github.com/seog-jun/soundNimbus
  *
